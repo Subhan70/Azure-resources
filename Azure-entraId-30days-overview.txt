@@ -1,0 +1,126 @@
+Azure Tenat Structure:
+ Tenant
+ └── Management Groups
+      └── Subscriptions
+           └── Resource Groups
+                └── Resources
+				
+RABC: 
+  Roles (Owner, Contributor, Reader)
+  Scope (MG / Subscription / RG)
+------------------------------------------------------- 
+Understand Architecture in Microsoft Entra ID: 
+ Basically about learning users, logins, access - how these are structured in clound 
+  
+  Microsoft Entra ID: is an cloud identity system (earlier called as Azure AD - azure active Directory)
+   - this stores users like employees, apps, services etc 
+   - handles authentication (login methods like sso, MFA)
+   - Controls what they can Access ( like which services, VM's, etc)
+   
+  Identity Architecture Means : how identity is desinged and connected together 
+   - where users are stored 
+   - how they login 
+   - how access is controlled (what can they access in Azure )
+   - how security is added (their ip's etc)
+   Key components of Identity Architecture : 
+     1. Users (employees, admins,apps) & Groups(teams like Dev team, QA team, HR team, Admins: if a new joiner comes we just add his id to the group then he gets the access same as their team members)  
+     2. Authentication: basically login (which type of login "username& pasword" or "OTP" or "MFA")
+	 3. Authorizaition: What they can access like (which resource group, subscription) 
+	 4. Conditonal access (security rules) : like user should login from particular network(VPN, whitelisted networ range) , blocks risk login(like hacking attacks), 
+	 5. Application Identities : like some apps require access to VM or DB, like pipelines using web app service like this 
+	  
+	          On-Prem AD
+            │
+            ▼
+   Azure AD Connect
+            │
+            ▼
+   Microsoft Entra ID (Cloud)
+      │        │        │
+      ▼        ▼        ▼
+   Users     Apps     Services
+      │
+      ▼
+ Authentication (Login)
+      │
+      ▼
+ Conditional Access + MFA
+      │
+      ▼
+ Authorization (RBAC)
+      │
+      ▼
+ Access to Resources (VM, AKS, DB)
+
+
+ We should learn about these: 
+  Basics
+   Users, Groups, Roles
+   RBAC in Azure
+  Security
+   MFA
+   Conditional Access policies
+  DevOps Use
+   Service Principals
+   Managed Identities (VERY important)   
+  Hybrid Setup
+    On-prem AD + Entra ID integration
+	
+PIM (Privileged Identity Management ): it is a feature in Microsoft Entra ID helps to control and Monitor admin access 
+  - in simple words temporay admin access with control and security 
+  - instead of giving permanent admin access, by pim we provide access when needed, for limited time, with approval & tracking 
+  - this can be like eg:1-2 hours or mentioned time span and it gets removed automatically.
+  - JIT (Just In Time) access basically called as
+ In azure Portal -> Entra ID -> Privileged Identity Management
+---------------------------------------------------------
+Naming and tagging : for identifing env and cost tracking 
+Naming standards = giving proper and meaning full names to resources 
+  should give like this eg: test123, vm1, my server etc
+  should be eg: vm-prod-eastus-app01 
+  
+ bcz without proper naming it is difficult to identify which service is using and troubleshoting becomes difficult 
+ by naming standards it is easy to identify and manage them 
+ 
+ Common naming patterns used mostly in this format 
+   <resource-type>-<environment>-<region>-<purpose>-<number> 
+   eg: vm-prod-eastus-app01
+   
+Tagging is like labels/stickers to the resources 
+ to know for which env, or which service it belongs 
+  eg: if we have multiple VM's for one environment, we can identify them by using tags like this belongs to one region like this 
+  
+ this is mainly for Cost tracking(which team is causing more billing), Ownership (who is responsible), Easy filter(finding out belongs to which)
+
+
+-------------------------------------------------
+
+Azure polices : 
+ these are mostly for allowing which regions and which specific VMS
+  we need to understadn the existing polices, what are restricted and what are allowed 
+  
+Resouce Locks: these helps us from accedental deleting (like if any user accedentally deleted any thing then this is an big issue ) 
+  to prevent this we define "delete locks" and Read-only Lock" this kind 
+  
+  
+  ----------------------------------
+  
+  AVD (Azure Virtual Desktop) 
+  Review host pools
+   AVD :; Azure virtual Desktop 
+    in simple layman terms, our office computer is in cloud, we are connecting to it from any where, with our devices with oud id 
+	
+  User -> AVD -> Group of Pcs(host pools) -> one pc
+  
+   - when we login, AVD ( securityGaurd + Manger),like are you allowed or not with your id
+   - Host pool is nothing but group of computers(eg: a room with full of computers) -> AVD chooses which computer is free
+   - Session Host ( this is our assigned PC ) 
+   eg: internet cafe -> when we goto shop, we have all computer, manager checks which is free and will give access to use that free computer, for a session (like one hr etc) 
+   
+  
+ Here we can get a Question : if everytime a new host is assigned how our previous data is showed
+ - session host does not stores our data, it is stored in central storage system 
+ - for thhis AVD uses a tool called FSlogix 
+   this FSLogix stores desktop files, downloads, app settings, user profiles inside a vitual disk file (VHD/VHDX)
+   - this is usually stored in Azure files (file share) or Storage account 
+  - when we login AVD gives VM(session Host), FSlogix attaches our profile (data stored).
+  
