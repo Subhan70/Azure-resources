@@ -9,3 +9,5 @@ we will one private endpoint for one service :
      VM -> PE -> DB 
 <img width="1210" height="453" alt="image" src="https://github.com/user-attachments/assets/666bcafb-e95d-4646-a2e3-faed71cf5e15" />
 if we want to connect to one service then we need to create private end points for each 
+Private Endpoint(PE) and private links are differnet. 
+PE is we created and Private link is managed by PE (we doesnt require to create a private link)
