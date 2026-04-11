@@ -1,3 +1,4 @@
 https://learn.microsoft.com/en-us/azure/role-based-access-control/rbac-and-directory-admin-roles  --> RABC
 https://azure.microsoft.com/en-us/pricing/calculator/     -> Pricing caliculator
 https://learn.microsoft.com/en-us/azure/virtual-desktop/  -> AVD learning
+https://learn.microsoft.com/en-us/azure/private-link/private-link-service-overview   -> private link
