@@ -2,3 +2,5 @@ https://learn.microsoft.com/en-us/azure/role-based-access-control/rbac-and-direc
 https://azure.microsoft.com/en-us/pricing/calculator/     -> Pricing caliculator
 https://learn.microsoft.com/en-us/azure/virtual-desktop/  -> AVD learning
 https://learn.microsoft.com/en-us/azure/private-link/private-link-service-overview   -> private link
+https://learn.microsoft.com/en-us/training/modules/azure-virtual-desktop-architecture/?source=recommendations  -> AVD learning link
+https://learn.microsoft.com/en-us/azure/virtual-desktop/overview  -> avd ovierview
