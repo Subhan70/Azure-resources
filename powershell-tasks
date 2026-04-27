@@ -1,0 +1,62 @@
+
+
+# for avd users : 
+$result = @()
+
+foreach ($rg in $resourceGroups) {
+
+    Write-Host "Processing RG: $rg"
+
+    # Get VMs
+    $vms = Get-AzVM -ResourceGroupName $rg -Status
+    $vmCount = $vms.Count
+
+    # Get VM sizes (unique)
+    $vmSizes = ($vms.HardwareProfile.VmSize | Sort-Object -Unique) -join ","
+
+    # Get Host Pool
+    $hostPool = Get-AzWvdHostPool | Where-Object { $_.ResourceGroupName -eq $rg }
+
+    $hostPoolName = $hostPool.Name
+    $hostPoolType = $hostPool.HostPoolType
+
+    # Get Session Hosts (for user estimation)
+    $sessionHosts = Get-AzWvdSessionHost -ResourceGroupName $rg -HostPoolName $hostPoolName
+
+    if ($hostPoolType -eq "Pooled") {
+        $userCount = "Check App Group"   # manual needed
+    } else {
+        $userCount = $sessionHosts.Count
+    }
+
+    # Add to result
+    $result += [PSCustomObject]@{
+        HostPoolName = $hostPoolName
+        ResourceGroup = $rg
+        HostPoolType = $hostPoolType
+        VMCount = $vmCount
+        VMSizes = $vmSizes
+        Users = $userCount
+    }
+}
+
+
+----------------------------------------------
+#for cost 
+$start = (Get-Date).AddMonths(-1)
+$end = Get-Date
+
+$cost = Get-AzConsumptionUsageDetail -StartDate $start -EndDate $end
+
+$costSummary = $cost | Group-Object ResourceGroupName | ForEach-Object {
+    [PSCustomObject]@{
+        ResourceGroup = $_.Name
+        Cost = ($_.Group | Measure-Object PretaxCost -Sum).Sum
+    }
+}
+
+$costSummary | Export-Csv "C:\Temp\AVD_Cost.csv" -NoTypeInformation
+# Export
+$result | Export-Csv -Path "C:\Temp\AVD_Report.csv" -NoTypeInformation
+
+Write-Host "Report Generated!"
