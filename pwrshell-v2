@@ -1,0 +1,90 @@
+
+Cost for 30days 
+
+$start = (Get-Date).AddDays(-30)
+$end = Get-Date
+
+$usage = Get-AzConsumptionUsageDetail -StartDate $start -EndDate $end
+
+$costTable = $usage | Group-Object ResourceGroupName | ForEach-Object {
+    [PSCustomObject]@{
+        ResourceGroup = $_.Name
+        Cost = ($_.Group | Measure-Object PretaxCost -Sum).Sum
+    }
+}
+
+--------------------------------------
+Main script :
+
+$result = @()
+
+foreach ($rg in $resourceGroups) {
+
+    Write-Host "Processing $rg..."
+
+    # Get VMs
+    $vms = Get-AzVM -ResourceGroupName $rg -Status -ErrorAction SilentlyContinue
+    $vmCount = $vms.Count
+
+    $vmSizes = if ($vms) {
+        ($vms.HardwareProfile.VmSize | Sort-Object -Unique) -join ","
+    } else {
+        "N/A"
+    }
+
+    # Get Host Pool
+    $hostPool = Get-AzWvdHostPool | Where-Object { $_.ResourceGroupName -eq $rg }
+
+    if ($hostPool) {
+        $hostPoolName = $hostPool.Name
+        $hostPoolType = $hostPool.HostPoolType
+    } else {
+        $hostPoolName = "Not Found"
+        $hostPoolType = "Unknown"
+    }
+
+    # Get Session Hosts
+    $sessionHosts = @()
+    if ($hostPoolName -ne "Not Found") {
+        $sessionHosts = Get-AzWvdSessionHost -ResourceGroupName $rg -HostPoolName $hostPoolName -ErrorAction SilentlyContinue
+    }
+
+    # Get Users
+    $userCount = 0
+
+    if ($hostPoolType -eq "Personal") {
+        # 1 VM = 1 user
+        $userCount = $sessionHosts.Count
+    }
+    elseif ($hostPoolType -eq "Pooled") {
+        # Get users from Application Groups
+        $appGroups = Get-AzWvdApplicationGroup -ResourceGroupName $rg -ErrorAction SilentlyContinue
+
+        foreach ($app in $appGroups) {
+            $assignments = Get-AzRoleAssignment -Scope $app.Id -ErrorAction SilentlyContinue
+            $userCount += ($assignments | Where-Object { $_.SignInName }).Count
+        }
+    }
+
+    # Get Cost
+    $rgCost = ($costTable | Where-Object { $_.ResourceGroup -eq $rg }).Cost
+
+    if (-not $rgCost) { $rgCost = 0 }
+
+    # Final object
+    $result += [PSCustomObject]@{
+        HostPoolName  = $hostPoolName
+        ResourceGroup = $rg
+        HostPoolType  = $hostPoolType
+        VMCount       = $vmCount
+        VMSizes       = $vmSizes
+        Users         = $userCount
+        MonthlyCost   = [math]::Round($rgCost,2)
+    }
+}
+
+# Export
+$path = "C:\Temp\AVD_Final_Report.csv"
+$result | Export-Csv -Path $path -NoTypeInformation
+
+Write-Host "Report generated at $path"
