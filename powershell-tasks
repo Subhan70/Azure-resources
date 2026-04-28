@@ -60,3 +60,24 @@ $costSummary | Export-Csv "C:\Temp\AVD_Cost.csv" -NoTypeInformation
 $result | Export-Csv -Path "C:\Temp\AVD_Report.csv" -NoTypeInformation
 
 Write-Host "Report Generated!"
+
+
+--------------------------------------
+
+New-Item -ItemType Directory -Path "C:\Temp" -Force | Out-Null
+
+$start = (Get-Date).AddDays(-30).ToString("yyyy-MM-dd")
+$end   = (Get-Date).ToString("yyyy-MM-dd")
+
+$usage = Get-AzConsumptionUsageDetail -StartDate $start -EndDate $end -ErrorAction Stop
+
+$costTable = $usage | Group-Object ResourceGroupName | ForEach-Object {
+    [PSCustomObject]@{
+        ResourceGroup = $_.Name
+        Cost          = [math]::Round((($_.Group | Measure-Object PreTaxCost -Sum).Sum), 2)
+    }
+}
+
+$costTable | Export-Csv -Path "C:\Temp\AVD_Report.csv" -NoTypeInformation
+
+Write-Host "Report generated successfully: C:\Temp\AVD_Report.csv"
